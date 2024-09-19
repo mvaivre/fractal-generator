@@ -15,11 +15,13 @@ const Controls = styled.div`
 const App: React.FC = () => {
   const [density, setDensity] = useState<number>(4);
   const [numRings, setNumRings] = useState<number>(5);
-  const [startColor, setStartColor] = useState<string>('#FF5733'); // Start color
-  const [endColor, setEndColor] = useState<string>('#3357FF'); // End color
+  const [startColor, setStartColor] = useState<string>('#ff33eb'); // Start color
+  const [middleColor, setMiddleColor] = useState<string>('#ff9233'); // Middle color
+  const [endColor, setEndColor] = useState<string>('#ff3333'); // End color
   const [spinFactor, setSpinFactor] = useState<number>(0.4);
   const [spacingFactor, setSpacingFactor] = useState<number>(0.5);
   const [randomnessFactor, setRandomnessFactor] = useState<number>(0.2);
+  const [glueEffect, setGlueEffect] = useState<boolean>(false); // Glue effect toggle
 
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -110,12 +112,28 @@ const App: React.FC = () => {
         />
         <br />
         <br />
+        <label htmlFor="glueEffect">Gluey Effect:</label>
+        <input
+          type="checkbox"
+          id="glueEffect"
+          checked={glueEffect}
+          onChange={(e) => setGlueEffect(e.target.checked)}
+        />
+        <br />
+        <br />
         <label htmlFor="startColor">Start Color:</label>
         <input
           type="color"
           id="startColor"
           value={startColor}
           onChange={(e) => setStartColor(e.target.value)}
+        />
+        <label htmlFor="middleColor">Middle Color:</label>
+        <input
+          type="color"
+          id="middleColor"
+          value={middleColor}
+          onChange={(e) => setMiddleColor(e.target.value)}
         />
         <label htmlFor="endColor">End Color:</label>
         <input
@@ -134,10 +152,12 @@ const App: React.FC = () => {
         density={density}
         numRings={numRings}
         startColor={startColor}
+        middleColor={middleColor}
         endColor={endColor}
         spinFactor={spinFactor}
         spacingFactor={spacingFactor}
         randomnessFactor={randomnessFactor}
+        glueEffect={glueEffect}
         ref={svgRef}
       />
     </AppContainer>

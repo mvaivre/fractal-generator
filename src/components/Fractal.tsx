@@ -5,13 +5,15 @@ interface FractalProps {
   density: number; // Controls the density of circles in each ring
   numRings: number; // Controls how many rings are drawn
   startColor: string; // Starting color for the gradient
+  middleColor: string; // Middle color for the gradient
   endColor: string; // Ending color for the gradient
   spinFactor: number; // Controls the spinning effect strength
   spacingFactor: number; // Controls the nonlinear spacing between rings
   randomnessFactor: number; // Controls the amount of randomness in circle sizes
+  glueEffect: boolean; // Enables or disables the gluey effect
 }
 
-const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, startColor, endColor, spinFactor, spacingFactor, randomnessFactor }, ref) => {
+const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, startColor, middleColor, endColor, spinFactor, spacingFactor, randomnessFactor, glueEffect }, ref) => {
   const width = 600;
   const height = 600;
   const margin = 40; // Margin around the fractal
@@ -24,8 +26,8 @@ const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, st
 
   const elements: JSX.Element[] = [];
 
-  // Helper function to interpolate between two colors
-  const interpolateColor = (start: string, end: string, factor: number): string => {
+  // Helper function to interpolate between three colors
+  const interpolateColor = (start: string, middle: string, end: string, factor: number): string => {
     const hexToRgb = (hex: string) => {
       const bigint = parseInt(hex.slice(1), 16);
       return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
@@ -35,8 +37,16 @@ const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, st
       return '#' + rgb.map(x => x.toString(16).padStart(2, '0')).join('');
     };
 
-    const startRgb = hexToRgb(start);
-    const endRgb = hexToRgb(end);
+    let startRgb, endRgb;
+    if (factor <= 0.5) {
+      startRgb = hexToRgb(start);
+      endRgb = hexToRgb(middle);
+      factor = factor * 2; // Adjust factor for first half of the interpolation
+    } else {
+      startRgb = hexToRgb(middle);
+      endRgb = hexToRgb(end);
+      factor = (factor - 0.5) * 2; // Adjust factor for second half of the interpolation
+    }
 
     const interpolatedRgb = startRgb.map((startValue, i) => {
       return Math.round(startValue + (endRgb[i] - startValue) * factor);
@@ -45,11 +55,11 @@ const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, st
     return rgbToHex(interpolatedRgb);
   };
 
-  // Function to calculate ring spacing (more regular, larger inner spacing, no inner ring further than outer ring)
+  // Function to calculate ring spacing
   const calculateRingDistance = (ringIndex: number) => {
     const relativePosition = ringIndex / totalRings;
     const scalingFactor = spacingFactor * maxRadius;
-    return scalingFactor * relativePosition; // Linear scaling for more regular spacing
+    return scalingFactor * relativePosition;
   };
 
   // Function to apply a galaxy-like spin effect
@@ -78,12 +88,12 @@ const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, st
 
   // Recursive function to generate concentric rings of circles
   const drawRing = (ringIndex: number) => {
-    const numCircles = Math.max(4, ringIndex * density); // Ensure at least 4 circles in first ring
+    const numCircles = Math.max(4, ringIndex * density); // Ensure at least 4 circles in the first ring
     const baseRadius = initialRadius * Math.pow(reductionFactor, ringIndex); // Shrink circles progressively
     const ringDistance = calculateRingDistance(ringIndex);
     const spinOffset = calculateSpinOffset(ringIndex);
 
-    const ringColor = interpolateColor(startColor, endColor, ringIndex / totalRings); // Interpolate color
+    const ringColor = interpolateColor(startColor, middleColor, endColor, ringIndex / totalRings); // Interpolate color
 
     for (let i = 0; i < numCircles; i++) {
       const angle = (2 * Math.PI * i) / numCircles + spinOffset;
@@ -104,6 +114,21 @@ const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, st
     }
   };
 
+  // Apply gluey effect if enabled
+  const filter = glueEffect ? (
+    <defs>
+      <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="
+            1 0 0 0 0  
+            0 1 0 0 0  
+            0 0 1 0 0  
+            0 0 0 18 -7" result="goo" />
+        <feBlend in="SourceGraphic" in2="goo" />
+      </filter>
+    </defs>
+  ) : null;
+
   // Loop through each ring and draw it
   for (let ringIndex = 0; ringIndex < totalRings; ringIndex++) {
     drawRing(ringIndex);
@@ -116,7 +141,10 @@ const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, st
       height={height}
       style={{ border: '1px solid #ccc', marginTop: '20px' }}
     >
-      {elements}
+      {filter}
+      <g filter={glueEffect ? 'url(#goo)' : ''}>
+        {elements}
+      </g>
     </svg>
   );
 });
