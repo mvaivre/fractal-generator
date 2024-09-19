@@ -13,14 +13,14 @@ const Controls = styled.div`
 `;
 
 const App: React.FC = () => {
-  const [density, setDensity] = useState<number>(4);
+  const [density, setDensity] = useState<number>(6);
   const [numRings, setNumRings] = useState<number>(5);
   const [startColor, setStartColor] = useState<string>('#ff33eb'); // Start color
   const [middleColor, setMiddleColor] = useState<string>('#ff9233'); // Middle color
   const [endColor, setEndColor] = useState<string>('#ff3333'); // End color
   const [spinFactor, setSpinFactor] = useState<number>(0.4);
-  const [spacingFactor, setSpacingFactor] = useState<number>(0.5);
-  const [randomnessFactor, setRandomnessFactor] = useState<number>(0.2);
+  const [spacingFactor, setSpacingFactor] = useState<number>(0.7);
+  const [randomnessFactor, setRandomnessFactor] = useState<number>(0);
   const [glueEffect, setGlueEffect] = useState<boolean>(false); // Glue effect toggle
 
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -55,7 +55,7 @@ const App: React.FC = () => {
           id="density"
           name="density"
           min="1"
-          max="7"
+          max="10"
           value={density}
           onChange={(e) => setDensity(parseInt(e.target.value, 10))}
         />
@@ -91,8 +91,8 @@ const App: React.FC = () => {
           type="range"
           id="spacing"
           name="spacing"
-          min="0.1"
-          max="1"
+          min="0.5"
+          max="1.5"
           step="0.01"
           value={spacingFactor}
           onChange={(e) => setSpacingFactor(parseFloat(e.target.value))}

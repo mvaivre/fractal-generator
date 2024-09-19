@@ -21,7 +21,6 @@ const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, st
   const centerY = height / 2;
   const initialRadius = 30; // Base size of the circles in the first ring
   const maxRadius = (Math.min(width, height) - 2 * margin) / 2; // Max distance for outermost rings
-  const reductionFactor = 0.8; // How much the circle size shrinks in each ring
   const totalRings = numRings; // Set the number of rings dynamically
 
   const elements: JSX.Element[] = [];
@@ -55,11 +54,19 @@ const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, st
     return rgbToHex(interpolatedRgb);
   };
 
+  // Function to calculate the evolving reduction factor
+  const calculateReductionFactor = (ringIndex: number): number => {
+    const minFactor = 0.7;
+    const maxFactor = 1.0;
+    // Nonlinear evolution of reduction factor: Decays over rings
+    return maxFactor - (maxFactor - minFactor) * Math.pow(ringIndex / totalRings, 2); // Quadratic decay
+  };
+
   // Function to calculate ring spacing
   const calculateRingDistance = (ringIndex: number) => {
     const relativePosition = ringIndex / totalRings;
     const scalingFactor = spacingFactor * maxRadius;
-    return scalingFactor * relativePosition;
+    return scalingFactor * Math.pow(relativePosition, 0.6);
   };
 
   // Function to apply a galaxy-like spin effect
@@ -89,7 +96,8 @@ const Fractal = forwardRef<SVGSVGElement, FractalProps>(({ density, numRings, st
   // Recursive function to generate concentric rings of circles
   const drawRing = (ringIndex: number) => {
     const numCircles = Math.max(4, ringIndex * density); // Ensure at least 4 circles in the first ring
-    const baseRadius = initialRadius * Math.pow(reductionFactor, ringIndex); // Shrink circles progressively
+    const evolvingReductionFactor = calculateReductionFactor(ringIndex); // Evolving reduction factor
+    const baseRadius = initialRadius * Math.pow(evolvingReductionFactor, ringIndex); // Shrink circles progressively based on evolving reduction factor
     const ringDistance = calculateRingDistance(ringIndex);
     const spinOffset = calculateSpinOffset(ringIndex);
 
